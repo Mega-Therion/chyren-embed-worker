@@ -202,8 +202,14 @@ def embed_ollama(chunks: list[str], ollama_url: str, model: str) -> list[list[fl
                 headers={"content-type": "application/json"},
                 method="POST",
             )
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                vectors.append(json.load(resp)["embedding"])
+            for attempt in range(3):
+                try:
+                    with urllib.request.urlopen(req, timeout=180) as resp:
+                        vectors.append(json.load(resp)["embedding"])
+                    break
+                except TimeoutError:
+                    if attempt == 2:
+                        raise
     return vectors
 
 
